@@ -1,10 +1,24 @@
 import OpenAI from 'openai';
-import { config } from './config';
 import { SearchResult } from './qdrant';
 
-const openai = new OpenAI({
-  apiKey: config.openai.apiKey,
-});
+// Lazy initialization of OpenAI client
+let openai: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openai) {
+    // Get API key directly from environment
+    const apiKey = process.env.OPENAI_API_KEY || '';
+    
+    if (!apiKey) {
+      throw new Error('OpenAI API key not found. Please set OPENAI_API_KEY in your environment variables.');
+    }
+    
+    openai = new OpenAI({
+      apiKey: apiKey,
+    });
+  }
+  return openai;
+}
 
 export async function generateEmbedding(text: string): Promise<number[]> {
   if (!text.trim()) {
@@ -12,7 +26,8 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   }
 
   try {
-    const response = await openai.embeddings.create({
+    const client = getOpenAIClient();
+    const response = await client.embeddings.create({
       model: 'text-embedding-ada-002',
       input: text.substring(0, 8000), // Limit text length for embeddings
     });
@@ -55,7 +70,8 @@ Context from web scraping:
 ${context}`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },

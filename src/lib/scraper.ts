@@ -1,4 +1,4 @@
-import { chromium, Browser, Page } from 'playwright';
+import { chromium, Browser, BrowserContext, Page } from 'playwright';
 import * as cheerio from 'cheerio';
 import { config } from './config';
 import { WebPageDocument } from './qdrant';
@@ -15,9 +15,30 @@ export class WebScraper {
 
   async initialize(): Promise<void> {
     if (!this.browser) {
+      // Enhanced browser arguments to avoid bot detection
+      const browserArgs = [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-software-rasterizer',
+        '--disable-blink-features=AutomationControlled',
+        '--disable-features=VizDisplayCompositor',
+        '--no-first-run',
+        '--no-default-browser-check',
+        '--disable-default-apps',
+        '--disable-popup-blocking',
+        '--disable-translate',
+        '--disable-background-timer-throttling',
+        '--disable-renderer-backgrounding',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-ipc-flooding-protection'
+      ];
+
       this.browser = await chromium.launch({
         headless: true,
-        args: ['--no-sandbox', '--disable-dev-shm-usage'],
+        args: browserArgs,
+        timeout: 60000,
       });
     }
   }
@@ -30,6 +51,8 @@ export class WebScraper {
   }
 
   async scrapePage(url: string): Promise<ScrapeResult> {
+    let context: BrowserContext | null = null;
+    
     try {
       await this.initialize();
       
@@ -37,12 +60,50 @@ export class WebScraper {
         throw new Error('Browser not initialized');
       }
 
-      const page = await this.browser.newPage();
-      
-      // Set user agent and other headers
-      await page.setUserAgent(config.scraping.userAgent);
-      await page.setExtraHTTPHeaders({
-        'Accept-Language': 'en-US,en;q=0.9',
+      // Create browser context with realistic headers and user agent
+      context = await this.browser.newContext({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        extraHTTPHeaders: {
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'DNT': '1',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Sec-Fetch-User': '?1',
+          'Cache-Control': 'max-age=0'
+        },
+        viewport: { width: 1366, height: 768 },
+        locale: 'en-US',
+        timezoneId: 'America/New_York',
+        permissions: [],
+        colorScheme: 'light',
+        reducedMotion: 'reduce',
+        forcedColors: 'none',
+        javaScriptEnabled: true,
+      });
+
+      const page = await context.newPage();
+
+      // Additional stealth measures
+      await page.addInitScript(() => {
+        // Remove webdriver property
+        Object.defineProperty(navigator, 'webdriver', {
+          get: () => undefined,
+        });
+
+        // Mock languages
+        Object.defineProperty(navigator, 'languages', {
+          get: () => ['en-US', 'en'],
+        });
+
+        // Mock plugins
+        Object.defineProperty(navigator, 'plugins', {
+          get: () => [1, 2, 3, 4, 5],
+        });
       });
 
       // Navigate to the page with timeout
@@ -98,6 +159,13 @@ export class WebScraper {
         document: failedDocument,
         error: error instanceof Error ? error.message : 'Unknown error' 
       };
+    } finally {
+      // Ensure cleanup in case of errors
+      try {
+        if (context) await context.close();
+      } catch (cleanupError) {
+        console.warn('Error during context cleanup:', cleanupError);
+      }
     }
   }
 

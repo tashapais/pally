@@ -1,4 +1,4 @@
-import { QdrantVectorStore } from '@qdrant/js-client-rest';
+import { QdrantClient } from '@qdrant/js-client-rest';
 import { config } from './config';
 
 export interface WebPageDocument {
@@ -19,11 +19,11 @@ export interface SearchResult extends WebPageDocument {
 }
 
 class QdrantService {
-  private client: QdrantVectorStore;
+  private client: QdrantClient;
   private isInitialized = false;
 
   constructor() {
-    this.client = new QdrantVectorStore({
+    this.client = new QdrantClient({
       url: config.qdrant.url,
       apiKey: config.qdrant.apiKey || undefined,
     });

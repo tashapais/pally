@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "process": "tsx scripts/process-websites.ts",
+    "test-sample": "tsx scripts/process-websites.ts",
     "qdrant:docker": "docker run -p 6333:6333 -p 6334:6334 -v $(pwd)/qdrant_storage:/qdrant/storage:z qdrant/qdrant:latest"
   },
   "dependencies": {
@@ -15,6 +16,7 @@
     "@types/uuid": "^10.0.0",
     "cheerio": "^1.1.0",
     "csv-parser": "^3.2.0",
+    "dotenv": "^17.2.0",
     "lucide-react": "^0.525.0",
     "next": "15.3.5",
     "openai": "^5.8.3",
