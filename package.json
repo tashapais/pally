@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "process": "tsx scripts/process-websites.ts",
-    "test-sample": "tsx scripts/process-websites.ts",
+    "test-sample": "tsx scripts/process-test-sample.ts",
     "qdrant:docker": "docker run -p 6333:6333 -p 6334:6334 -v $(pwd)/qdrant_storage:/qdrant/storage:z qdrant/qdrant:latest"
   },
   "dependencies": {

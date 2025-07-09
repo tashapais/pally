@@ -9,8 +9,8 @@ export const config = {
     vectorDimension: parseInt(process.env.VECTOR_DIMENSION || '1536'),
   },
   scraping: {
-    maxConcurrentRequests: parseInt(process.env.MAX_CONCURRENT_REQUESTS || '2'), // Reduced from 5 to be more respectful
-    requestDelayMs: parseInt(process.env.REQUEST_DELAY_MS || '2000'), // Increased from 1000ms to 2000ms
+    maxConcurrentRequests: parseInt(process.env.MAX_CONCURRENT_REQUESTS || '3'), // Balanced for 1000+ sites
+    requestDelayMs: parseInt(process.env.REQUEST_DELAY_MS || '1500'), // Slightly faster but still respectful
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     timeout: 30000, // 30 seconds
   },

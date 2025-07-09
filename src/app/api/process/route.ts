@@ -44,10 +44,13 @@ export async function GET() {
   try {
     const status = await contentProcessor.getProcessingStatus();
     
+    // More robust processing detection
+    const isProcessing = !status.stats.endTime && status.stats.total > 0;
+    
     return NextResponse.json({
       documentsInDatabase: status.documentsInDatabase,
       stats: status.stats,
-      isProcessing: status.stats.endTime ? false : true,
+      isProcessing: isProcessing,
     });
   } catch (error) {
     console.error('Status API error:', error);

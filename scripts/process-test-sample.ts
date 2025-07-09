@@ -51,9 +51,9 @@ async function main() {
     const currentCount = await qdrantService.getDocumentCount();
     console.log(`📊 Current documents in database: ${currentCount}`);
     
-    // Process full website list (1000+ websites)
-    console.log('🌐 Processing full website dataset (websites.csv)...');
-    const stats = await contentProcessor.processAllWebsites('websites.csv');
+    // Process test sample websites (small dataset for testing)
+    console.log('🧪 Processing test sample (small dataset)...');
+    const stats = await contentProcessor.processAllWebsites('test-sample.csv');
     
     console.log('\n🎉 Processing completed successfully!');
     console.log(`📈 Final stats:`, stats);
