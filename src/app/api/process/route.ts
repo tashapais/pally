@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { contentProcessor } from '@/lib/processor';
-import { qdrantService } from '@/lib/qdrant';
 
 export async function POST(request: NextRequest) {
   try {

@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import csvParser from 'csv-parser';
-import { webScraper, ScrapeResult } from './scraper';
+import { webScraper } from './scraper';
 import { qdrantService, WebPageDocument } from './qdrant';
-import { generateEmbedding, prepareTextForEmbedding } from './openai';
+import { generateEmbedding, generateSparseVector, prepareTextForEmbedding } from './openai';
 
 export interface ProcessingStats {
   total: number;
@@ -147,7 +147,6 @@ export class ContentProcessor {
       
       if (result.success && result.document) {
         await this.processSuccessfulScrape(result.document);
-        this.stats.successful++;
       } else {
         console.error(`❌ Failed to scrape: ${result.error}`);
         this.stats.failed++;
@@ -171,13 +170,18 @@ export class ContentProcessor {
         document.description
       );
 
-      // Generate embedding
-      const embedding = await generateEmbedding(textForEmbedding);
+      // Generate both dense and sparse embeddings
+      console.log(`🔄 Generating embeddings for: ${document.title}`);
+      const [denseEmbedding, sparseEmbedding] = await Promise.all([
+        generateEmbedding(textForEmbedding),
+        Promise.resolve(generateSparseVector(textForEmbedding)), // Synchronous, but wrapped for consistency
+      ]);
 
-      // Store in Qdrant
-      await qdrantService.upsertDocument(document, embedding);
+      // Store both vectors in Qdrant
+      await qdrantService.upsertDocument(document, denseEmbedding, sparseEmbedding);
 
       console.log(`✅ Processed: ${document.title} (${document.domain})`);
+      this.stats.successful++;
     } catch (error) {
       console.error(`❌ Failed to process ${document.url}:`, error);
       this.stats.failed++;

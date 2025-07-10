@@ -161,7 +161,7 @@ export default function Home() {
               Ask me anything about the web content
             </h2>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              I've analyzed content from 1000+ websites. Ask questions, find connections, 
+              I&apos;ve analyzed content from 1000+ websites. Ask questions, find connections, 
               or explore topics across the entire dataset.
             </p>
             

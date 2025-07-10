@@ -20,6 +20,68 @@ function getOpenAIClient(): OpenAI {
   return openai;
 }
 
+// Interface for sparse vectors
+export interface SparseVector {
+  indices: number[];
+  values: number[];
+}
+
+// Simple tokenizer for sparse vector generation
+function tokenize(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter(token => token.length > 2 && token.length < 20)
+    .filter(token => !isStopWord(token));
+}
+
+// Basic stop words list
+const stopWords = new Set([
+  'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 
+  'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did',
+  'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those'
+]);
+
+function isStopWord(word: string): boolean {
+  return stopWords.has(word);
+}
+
+// Generate sparse vector using TF-IDF approach
+export function generateSparseVector(text: string, vocabulary?: Map<string, number>): SparseVector {
+  const tokens = tokenize(text);
+  const termFreq = new Map<string, number>();
+  
+  // Calculate term frequencies
+  tokens.forEach(token => {
+    termFreq.set(token, (termFreq.get(token) || 0) + 1);
+  });
+  
+  // Simple vocabulary mapping (in production, this would be pre-computed)
+  const vocab = vocabulary || new Map<string, number>();
+  let nextIndex = vocab.size;
+  
+  const indices: number[] = [];
+  const values: number[] = [];
+  
+  termFreq.forEach((freq, term) => {
+    let index = vocab.get(term);
+    if (index === undefined) {
+      index = nextIndex++;
+      vocab.set(term, index);
+    }
+    
+    // Simple TF score with some normalization
+    const score = Math.log(1 + freq) / Math.log(1 + tokens.length);
+    if (score > 0.01) { // Filter out very low scores
+      indices.push(index);
+      values.push(score);
+    }
+  });
+  
+  return { indices, values };
+}
+
 export async function generateEmbedding(text: string): Promise<number[]> {
   if (!text.trim()) {
     throw new Error('Text cannot be empty');
@@ -28,8 +90,9 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   try {
     const client = getOpenAIClient();
     const response = await client.embeddings.create({
-      model: 'text-embedding-ada-002',
+      model: 'text-embedding-3-large', // Upgraded from text-embedding-3-small
       input: text.substring(0, 8000), // Limit text length for embeddings
+      encoding_format: 'float',
     });
 
     return response.data[0].embedding;

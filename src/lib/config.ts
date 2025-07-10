@@ -6,7 +6,7 @@ export const config = {
     url: process.env.QDRANT_URL || 'http://localhost:6333',
     apiKey: process.env.QDRANT_API_KEY || '',
     collectionName: process.env.QDRANT_COLLECTION_NAME || 'web_content',
-    vectorDimension: parseInt(process.env.VECTOR_DIMENSION || '1536'),
+    vectorDimension: parseInt(process.env.VECTOR_DIMENSION || '3072'), // Updated for text-embedding-3-large
   },
   scraping: {
     maxConcurrentRequests: parseInt(process.env.MAX_CONCURRENT_REQUESTS || '3'), // Balanced for 1000+ sites

@@ -1,4 +1,4 @@
-import { chromium, Browser, BrowserContext, Page } from 'playwright';
+import { chromium, Browser, BrowserContext } from 'playwright';
 import * as cheerio from 'cheerio';
 import { config } from './config';
 import { WebPageDocument } from './qdrant';
@@ -189,7 +189,7 @@ export class WebScraper {
     }
 
     // Extract description
-    let description = $('meta[name="description"]').attr('content') || 
+    const description = $('meta[name="description"]').attr('content') || 
                      $('meta[property="og:description"]').attr('content');
 
     // Extract main content

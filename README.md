@@ -1,11 +1,14 @@
 # Web Content Intelligence Engine
 
-A powerful web scraping and search system that crawls websites, stores content in a vector database, and provides intelligent search through a chat interface.
+A powerful web scraping and search system that crawls websites, stores content in a vector database, and provides intelligent **hybrid search** through a chat interface.
 
 ## Features
 
 - 🕷️ **Smart Web Scraping**: Extract content from 1000+ websites using Playwright
-- 🧠 **Vector Search**: Semantic search powered by OpenAI embeddings and Qdrant
+- 🧠 **Hybrid Vector Search**: Advanced search combining semantic understanding with keyword matching
+  - **Dense vectors**: OpenAI's text-embedding-3-large (3072 dimensions) for semantic understanding
+  - **Sparse vectors**: TF-IDF style keyword matching for exact term relevance
+  - **RRF Fusion**: Reciprocal Rank Fusion for optimal result combination
 - 💬 **Chat Interface**: Query content using natural language
 - 📊 **Source Attribution**: All answers include source links and relevance scores
 - 🔄 **Real-time Processing**: Monitor scraping progress in real-time
@@ -16,7 +19,9 @@ A powerful web scraping and search system that crawls websites, stores content i
 📁 Web Content Intelligence Engine
 ├── 🌐 Next.js Frontend (Chat Interface)
 ├── 🕷️ Playwright Web Scraper
-├── 🔍 Qdrant Vector Database
+├── 🔍 Qdrant Vector Database (Hybrid Search)
+│   ├── Dense Vectors (Semantic Search)
+│   └── Sparse Vectors (Keyword Search)
 ├── 🧠 OpenAI Embeddings & Chat
 └── 📊 Processing Pipeline
 ```
@@ -56,7 +61,7 @@ REQUEST_DELAY_MS=1000
 
 # Collection Settings
 QDRANT_COLLECTION_NAME=web_content
-VECTOR_DIMENSION=1536
+VECTOR_DIMENSION=3072
 ```
 
 ### 3. Start Qdrant Database
@@ -114,7 +119,7 @@ npm run process
 | `MAX_CONCURRENT_REQUESTS` | Concurrent scraping requests | `5` |
 | `REQUEST_DELAY_MS` | Delay between requests (ms) | `1000` |
 | `QDRANT_COLLECTION_NAME` | Vector collection name | `web_content` |
-| `VECTOR_DIMENSION` | OpenAI embedding dimension | `1536` |
+| `VECTOR_DIMENSION` | OpenAI embedding dimension | `3072` (text-embedding-3-large) |
 
 ### Scraping Configuration
 
@@ -300,3 +305,43 @@ For issues and questions:
 ---
 
 **Built with**: Next.js, Qdrant, OpenAI, Playwright, TypeScript, Tailwind CSS
+
+✅ Hybrid Search Implementation Complete!
+What I've Implemented:
+✅ Upgraded OpenAI Embeddings
+Switched from text-embedding-3-small (1536 dims) to text-embedding-3-large (3072 dims)
+Better semantic understanding and accuracy
+✅ Added Sparse Vector Support
+Implemented TF-IDF style sparse vectors for keyword matching
+Enhanced tokenization with stop word filtering
+Preserves exact term relevance
+✅ Hybrid Search with RRF Fusion
+Qdrant's Query API with prefetch for dual search paths
+Reciprocal Rank Fusion combines dense + sparse results intelligently
+
+User Query: "good machine learning developer"
+     ↓
+┌─────────────────┬─────────────────┐
+│  Dense Vector   │  Sparse Vector  │
+│  (Semantic)     │  (Keywords)     │
+│                 │                 │
+│ Understands:    │ Matches exact:  │
+│ • "expert" →    │ • "machine"     │
+│   "developer"   │ • "learning"    │
+│ • "AI engineer" │ • "developer"   │
+│ • "ML expert"   │ • "python"      │
+└─────────────────┴─────────────────┘
+     ↓           ↓
+   [50 results] [50 results]
+     ↓           ↓
+     └─────┬─────┘
+           ↓
+    RRF Fusion Algorithm
+           ↓
+     [10 best results]
+
+Key Benefits:
+🎯 Better Keyword Matching: Finds "Python", "TensorFlow", specific company names
+🧠 Semantic Understanding: Understands "ML expert" = "machine learning developer"
+⚖️ Intelligent Fusion: RRF balances both approaches optimally
+🚀 Performance: 3072-dimensional vectors for superior accuracy
